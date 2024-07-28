@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "spotify4mc",
+  "version": "${version}",
+  "name": "Spotify4MC",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "GPL-3.0",
+  "icon": "assets/spotify4mc/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "io.github.kuroka3.spotify4mc.client.Spotify4mcClient"
+    ],
+    "main": [
+      "io.github.kuroka3.spotify4mc.Spotify4mc"
+    ],
+    "modmenu": [
+      "io.github.kuroka3.spotify4mc.client.Spotify4mcModMenuApi"
+    ]
+  },
+  "mixins": [
+    "spotify4mc.mixins.json",
+    {
+      "config": "spotify4mc.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-language-kotlin": ">=${kotlin_loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
