@@ -4,7 +4,9 @@ import com.google.gson.GsonBuilder
 import dev.isxander.yacl3.api.*
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder
 import dev.isxander.yacl3.api.controller.StringControllerBuilder
+import io.github.kuroka3.spotify4mc.client.api.classes.SpotifyToken
 import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
+import io.github.kuroka3.spotify4mc.client.api.utils.TokenManager
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
@@ -19,7 +21,8 @@ class SpotifyConfig {
     var trackRefreshInterval: Int = 1; private set
     var clientID: String = "YOUR_CLIENT_ID"; private set
     var clientSecret: String = "YOUR_CLIENT_SECRET"; private set
-    var token: String = "token"; private set
+    var authServerPort: Int = 8080; private set
+    var token: SpotifyToken = SpotifyToken("token", "Bearer", "scope", 3600, "refresh")
 
     fun load() {
         if (!configFile.exists()) { return }
@@ -28,7 +31,8 @@ class SpotifyConfig {
         this.trackRefreshInterval = i.trackRefreshInterval
         this.clientID = i.clientID
         this.clientSecret = i.clientSecret
-        this.trackRefreshInterval = i.trackRefreshInterval
+        this.authServerPort = i.authServerPort
+        this.token = i.token
     }
 
     fun save() {
@@ -90,13 +94,32 @@ class SpotifyConfig {
             .controller(StringControllerBuilder::create)
             .build()
 
+        val authServerPortOption = Option.createBuilder<String>()
+            .name(Text.literal("Authorizer Server Port"))
+            .description(OptionDescription.of(Text.literal("A Port of Authorizer Web Server")))
+            .binding(
+                "8080",
+                { this.authServerPort.toString() },
+                { value -> this.authServerPort = if (value.toIntOrNull() != null) value.toInt() else this.authServerPort }
+            )
+            .controller(StringControllerBuilder::create)
+            .build()
+
+        val authorizeButton = ButtonOption.createBuilder()
+            .name(Text.literal("Authorize"))
+            .description(OptionDescription.of(Text.literal("Login with Spotify")))
+            .text(Text.literal("Open Browser..."))
+            .action { _, _ ->
+                TokenManager.login()
+            }.build()
+
         val tokenOption = Option.createBuilder<String>()
             .name(Text.literal("Token"))
             .description(OptionDescription.of(Text.literal("A Token to request API")))
             .binding(
                 "YOUR_TOKEN",
-                { this.token },
-                { value -> this.token = value }
+                { this.token.accessToken },
+                { _ -> }
             )
             .controller(StringControllerBuilder::create)
             .available(false)
@@ -119,6 +142,8 @@ class SpotifyConfig {
                         .description(OptionDescription.of(Text.literal("Group of Application Info Settings")))
                         .option(clientIDOption)
                         .option(clientSecretOption)
+                        .option(authServerPortOption)
+                        .option(authorizeButton)
                         .build())
                     .group(OptionGroup.createBuilder()
                         .name(Text.literal("Sensitive"))

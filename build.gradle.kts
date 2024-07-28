@@ -56,6 +56,7 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
     modImplementation("com.terraformersmc:modmenu:11.0.1")
     modImplementation("dev.isxander:yet-another-config-lib:3.5.0+1.21-fabric")
+    implementation("io.javalin:javalin:6.1.3")
 }
 
 tasks.processResources {
