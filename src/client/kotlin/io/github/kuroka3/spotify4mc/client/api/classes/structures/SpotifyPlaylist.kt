@@ -1,6 +1,7 @@
 package io.github.kuroka3.spotify4mc.client.api.classes.structures
 
 import com.mojang.datafixers.util.Either
+import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
 
 data class SpotifyPlaylist(
     val collaborative: Boolean,
@@ -18,6 +19,11 @@ data class SpotifyPlaylist(
     val type: String,
     val uri: String
 ) {
+    companion object {
+        fun fromJson(json: String): SpotifyPlaylist {
+            return JsonManager.gson.fromJson(json, SpotifyPlaylist::class.java)
+        }
+    }
 
     data class SpotifyChildTrack(
         val href: String,

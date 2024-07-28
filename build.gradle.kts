@@ -42,6 +42,7 @@ repositories {
     // for more information about repositories.
 
     maven(url = "https://maven.terraformersmc.com/")
+    maven(url = "https://maven.isxander.dev/releases")
 }
 
 dependencies {
@@ -54,6 +55,7 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
     modImplementation("com.terraformersmc:modmenu:11.0.1")
+    modImplementation("dev.isxander:yet-another-config-lib:3.5.0+1.21-fabric")
 }
 
 tasks.processResources {

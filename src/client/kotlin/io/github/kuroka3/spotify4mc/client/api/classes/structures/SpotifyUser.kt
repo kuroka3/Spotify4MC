@@ -1,5 +1,7 @@
 package io.github.kuroka3.spotify4mc.client.api.classes.structures
 
+import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
+
 data class SpotifyUser(
     val country: String,
     val displayName: String,
@@ -14,6 +16,11 @@ data class SpotifyUser(
     val type: String,
     val uri: String,
 ) {
+    companion object {
+        fun fromJson(json: String): SpotifyUser {
+            return JsonManager.gson.fromJson(json, SpotifyUser::class.java)
+        }
+    }
 
     val simplified: SpotifySimplifiedUser
         get() = SpotifySimplifiedUser(externalUrls, followers, href, id, type, uri, displayName)

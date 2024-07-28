@@ -1,5 +1,7 @@
 package io.github.kuroka3.spotify4mc.client.api.classes.structures
 
+import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
+
 data class SpotifyChapter(
     val audioPreviewUrl: String?,
     val availableMarkets: List<String>,
@@ -23,6 +25,12 @@ data class SpotifyChapter(
     val restrictions: Map<String, String>,
     val audiobook: SpotifyAudiobook
 ) {
+
+    companion object {
+        fun fromJson(json: String): SpotifyChapter {
+            return JsonManager.gson.fromJson(json, SpotifyChapter::class.java)
+        }
+    }
 
     val simplified: SpotifySimplifiedChapter
         get() = SpotifySimplifiedChapter(audioPreviewUrl, availableMarkets, chapterNumber, description, htmlDescription, durationMs, explicit, externalUrls, href, id, images, isPlayable, languages, name, releaseDate, releaseDatePrecision, type, uri, restrictions)

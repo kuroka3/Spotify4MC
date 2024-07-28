@@ -1,5 +1,7 @@
 package io.github.kuroka3.spotify4mc.client.api.classes.structures
 
+import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
+
 data class SpotifyAlbum(
     val albumType: String,
     val totalTracks: Int,
@@ -22,6 +24,12 @@ data class SpotifyAlbum(
     val label: String,
     val popularity: Int
 ) {
+
+    companion object {
+        fun fromJson(json: String): SpotifyAlbum {
+            return JsonManager.gson.fromJson(json, SpotifyAlbum::class.java)
+        }
+    }
 
     val simplified: SpotifySimplifiedAlbum
         get() = SpotifySimplifiedAlbum(albumType, totalTracks, availableMarkets, externalUrls, href, id, images, name, releaseDate, releaseDatePrecision, restrictions, type, uri, artists)

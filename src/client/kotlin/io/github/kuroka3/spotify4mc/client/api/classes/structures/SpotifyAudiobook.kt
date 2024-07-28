@@ -1,5 +1,7 @@
 package io.github.kuroka3.spotify4mc.client.api.classes.structures
 
+import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
+
 data class SpotifyAudiobook(
     val authors: List<SpotifyAuthor>,
     val availableMarkets: List<String>,
@@ -22,6 +24,12 @@ data class SpotifyAudiobook(
     val totalChapters: Int,
     val chapters: SpotifyChildChapter
 ) {
+    companion object {
+        fun fromJson(json: String): SpotifyAudiobook {
+            return JsonManager.gson.fromJson(json, SpotifyAudiobook::class.java)
+        }
+    }
+
     data class SpotifyChildChapter(
         val href: String,
         val limit: Int,

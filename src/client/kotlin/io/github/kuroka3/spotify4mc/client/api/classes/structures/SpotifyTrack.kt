@@ -1,5 +1,7 @@
 package io.github.kuroka3.spotify4mc.client.api.classes.structures
 
+import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
+
 data class SpotifyTrack(
     val album: SpotifyAlbum.SpotifySimplifiedAlbum,
     val artists: List<SpotifyArtist.SpotifySimplifiedArtist>,
@@ -22,6 +24,11 @@ data class SpotifyTrack(
     val uri: String,
     val isLocal: Boolean
 ) {
+    companion object {
+        fun fromJson(json: String): SpotifyTrack {
+            return JsonManager.gson.fromJson(json, SpotifyTrack::class.java)
+        }
+    }
 
     val simplified: SpotifySimplifiedTrack
         get() = SpotifySimplifiedTrack(artists, availableMarkets, discNumber, durationMs, explicit, externalIds, href, id, isPlayable, linkedFrom, restrictions, name, previewUrl, trackNumber, type, uri, isLocal)
