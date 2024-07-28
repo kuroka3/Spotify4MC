@@ -14,7 +14,7 @@ object HttpRequestManager {
             val url = URI("$SPOTIFY_API_BASE_URL$endpoint?$params").toURL()
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = method
-            connection.setRequestProperty("Authorization", SpotifyConfig.instance.token.toString()) //TODO Tokenmanager
+            connection.setRequestProperty("Authorization", SpotifyConfig.instance.token.toString())
 
             if (method != "GET") {
                 connection.doOutput = true

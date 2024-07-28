@@ -5,6 +5,8 @@ import dev.isxander.yacl3.api.*
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder
 import dev.isxander.yacl3.api.controller.StringControllerBuilder
 import io.github.kuroka3.spotify4mc.client.api.classes.SpotifyToken
+import io.github.kuroka3.spotify4mc.client.api.classes.structures.SpotifyTrack
+import io.github.kuroka3.spotify4mc.client.api.utils.HttpRequestManager
 import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
 import io.github.kuroka3.spotify4mc.client.api.utils.TokenManager
 import net.fabricmc.loader.api.FabricLoader
@@ -113,6 +115,16 @@ class SpotifyConfig {
                 TokenManager.login()
             }.build()
 
+        val debugTestButton = ButtonOption.createBuilder() //TODO Remove DebugBUtton
+            .name(Text.literal("Debug Test"))
+            .description(OptionDescription.of(Text.literal("Test Token")))
+            .action { _, _ ->
+                HttpRequestManager.request("/tracks/50cMYPHnTCbrGYlEIfj34y", "GET") {
+                    println(it.statusCode)
+                    println(JsonManager.gson.fromJson(it.body, SpotifyTrack::class.java).name)
+                }
+            }.build()
+
         val tokenOption = Option.createBuilder<String>()
             .name(Text.literal("Token"))
             .description(OptionDescription.of(Text.literal("A Token to request API")))
@@ -144,6 +156,7 @@ class SpotifyConfig {
                         .option(clientSecretOption)
                         .option(authServerPortOption)
                         .option(authorizeButton)
+                        .option(debugTestButton)
                         .build())
                     .group(OptionGroup.createBuilder()
                         .name(Text.literal("Sensitive"))
