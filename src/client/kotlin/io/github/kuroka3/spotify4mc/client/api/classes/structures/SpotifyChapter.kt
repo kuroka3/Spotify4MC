@@ -1,7 +1,9 @@
-package io.github.kuroka3.spotify4mc.client.api.classes
+package io.github.kuroka3.spotify4mc.client.api.classes.structures
 
-data class SpotifyEpisode(
+data class SpotifyChapter(
     val audioPreviewUrl: String?,
+    val availableMarkets: List<String>,
+    val chapterNumber: Int,
     val description: String,
     val htmlDescription: String,
     val durationMs: Int,
@@ -10,7 +12,6 @@ data class SpotifyEpisode(
     val href: String,
     val id: String,
     val images: List<SpotifyImage>,
-    val isExternallyHosted: Boolean,
     val isPlayable: Boolean,
     val languages: List<String>,
     val name: String,
@@ -19,15 +20,17 @@ data class SpotifyEpisode(
     // val resume_point
     val type: String,
     val uri: String,
-    val restriction: Map<String, String>,
-    val show: SpotifyShow.SpotifySimplifiedShow
+    val restrictions: Map<String, String>,
+    val audiobook: SpotifyAudiobook
 ) {
 
-    val simplified: SpotifySimplifiedEpisode
-        get() = SpotifySimplifiedEpisode(audioPreviewUrl, description, htmlDescription, durationMs, explicit, externalUrls, href, id, images, isExternallyHosted, isPlayable, languages, name, releaseDate, releaseDatePrecision, type, uri, restriction)
+    val simplified: SpotifySimplifiedChapter
+        get() = SpotifySimplifiedChapter(audioPreviewUrl, availableMarkets, chapterNumber, description, htmlDescription, durationMs, explicit, externalUrls, href, id, images, isPlayable, languages, name, releaseDate, releaseDatePrecision, type, uri, restrictions)
 
-    data class SpotifySimplifiedEpisode(
+    data class SpotifySimplifiedChapter(
         val audioPreviewUrl: String?,
+        val availableMarkets: List<String>,
+        val chapterNumber: Int,
         val description: String,
         val htmlDescription: String,
         val durationMs: Int,
@@ -36,7 +39,6 @@ data class SpotifyEpisode(
         val href: String,
         val id: String,
         val images: List<SpotifyImage>,
-        val isExternallyHosted: Boolean,
         val isPlayable: Boolean,
         val languages: List<String>,
         val name: String,
@@ -45,6 +47,6 @@ data class SpotifyEpisode(
         // val resume_point
         val type: String,
         val uri: String,
-        val restriction: Map<String, String>
+        val restrictions: Map<String, String>
     )
 }

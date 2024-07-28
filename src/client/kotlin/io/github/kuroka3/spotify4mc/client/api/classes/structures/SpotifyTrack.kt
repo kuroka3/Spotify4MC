@@ -1,4 +1,4 @@
-package io.github.kuroka3.spotify4mc.client.api.classes
+package io.github.kuroka3.spotify4mc.client.api.classes.structures
 
 data class SpotifyTrack(
     val album: SpotifyAlbum.SpotifySimplifiedAlbum,
