@@ -10,22 +10,27 @@ import io.javalin.http.HttpStatus
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URLEncoder
-import java.util.UUID
+import java.util.*
 
 object WebAuthorizer {
 
     private lateinit var app: Javalin
     private val redirect = "http://localhost:${SpotifyConfig.instance.authServerPort}/callback"
+    private var idleLimit = 0
+    private lateinit var timer: Timer
 
-    fun root(ctx: Context) {
+    private fun root(ctx: Context) {
+        idleReset()
         ctx.result("Spotify4MC Web Authorizer is up and running")
     }
 
-    fun message(ctx: Context) {
+    private fun message(ctx: Context) {
+        idleReset()
         ctx.result(ctx.queryParam("p").toString())
     }
 
-    fun login(ctx: Context) {
+    private fun login(ctx: Context) {
+        idleReset()
         val state = UUID.randomUUID().toString().replace("-", "")
         val scope = URLEncoder.encode("user-read-private user-read-playback-state user-modify-playback-state", "UTF-8")
         val clientID = URLEncoder.encode(SpotifyConfig.instance.clientID, "UTF-8")
@@ -38,7 +43,8 @@ object WebAuthorizer {
                 "state=$state")
     }
 
-    fun callback(ctx: Context) {
+    private fun callback(ctx: Context) {
+        idleReset()
         val code: String? = ctx.queryParam("code")
         val state: String = ctx.queryParam("state") ?: throw BadRequestResponse("State Mismatch")
 
@@ -71,15 +77,34 @@ object WebAuthorizer {
         }
     }
 
+    private fun idleReset() {
+        idleLimit = 0
+    }
+
     fun run() {
+        timer = Timer()
+
         app = Javalin.create().start(SpotifyConfig.instance.authServerPort)
         app.get("/", this::root)
         app.get("/message", this::message)
         app.get("/login", this::login)
         app.get("/callback", this::callback)
+
+        val task: TimerTask = object : TimerTask() {
+            override fun run() {
+                println(SpotifyConfig.instance.authServerIdleLimit - idleLimit)
+                if (idleLimit >= SpotifyConfig.instance.authServerIdleLimit) {
+                    stop()
+                } else {
+                    idleLimit++
+                }
+            }
+        }
+        timer.scheduleAtFixedRate(task, 0L, 1000L)
     }
 
     fun stop() {
         app.stop()
+        timer.cancel()
     }
 }

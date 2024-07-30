@@ -13,7 +13,8 @@ object TokenManager {
         Util.getOperatingSystem().open(URI("http://localhost:${SpotifyConfig.instance.authServerPort}/login"))
     }
 
-    fun refreshToken(token: SpotifyToken): Boolean {
+    fun refreshToken(): Boolean {
+        val token = SpotifyConfig.instance.token
         val refreshToken = token.refreshToken
         val url = URI("https://accounts.spotify.com/api/token").toURL()
         val connection = url.openConnection() as HttpURLConnection

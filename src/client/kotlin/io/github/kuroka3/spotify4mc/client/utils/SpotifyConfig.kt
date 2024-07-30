@@ -24,6 +24,7 @@ class SpotifyConfig {
     var clientID: String = "YOUR_CLIENT_ID"; private set
     var clientSecret: String = "YOUR_CLIENT_SECRET"; private set
     var authServerPort: Int = 8080; private set
+    var authServerIdleLimit = 300; private set
     var token: SpotifyToken = SpotifyToken("token", "Bearer", "scope", 3600, "refresh")
 
     fun load() {
@@ -34,6 +35,7 @@ class SpotifyConfig {
         this.clientID = i.clientID
         this.clientSecret = i.clientSecret
         this.authServerPort = i.authServerPort
+        this.authServerIdleLimit = i.authServerIdleLimit
         this.token = i.token
     }
 
@@ -107,6 +109,20 @@ class SpotifyConfig {
             .controller(StringControllerBuilder::create)
             .build()
 
+        val authServerIdleLimitOption = Option.createBuilder<Int>()
+            .name(Text.literal("Authorizer Server Idle Limitation"))
+            .description(OptionDescription.of(Text.literal("A Limit of Authorizer Web Server Idle State")))
+            .binding(
+                300,
+                { this.authServerIdleLimit },
+                { value -> this.authServerIdleLimit = value }
+            )
+            .controller { option -> IntegerSliderControllerBuilder.create(option)
+                .range(30, 600)
+                .step(10)
+                .formatValue { value -> Text.literal("$value seconds") }
+            }.build()
+
         val authorizeButton = ButtonOption.createBuilder()
             .name(Text.literal("Authorize"))
             .description(OptionDescription.of(Text.literal("Login with Spotify")))
@@ -155,6 +171,7 @@ class SpotifyConfig {
                         .option(clientIDOption)
                         .option(clientSecretOption)
                         .option(authServerPortOption)
+                        .option(authServerIdleLimitOption)
                         .option(authorizeButton)
                         .option(debugTestButton)
                         .build())

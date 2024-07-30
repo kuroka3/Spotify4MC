@@ -1,7 +1,6 @@
 package io.github.kuroka3.spotify4mc.client.api.utils
 
 import io.github.kuroka3.spotify4mc.client.api.classes.HttpResponse
-import io.github.kuroka3.spotify4mc.client.api.classes.SpotifyToken
 import io.github.kuroka3.spotify4mc.client.utils.SpotifyConfig
 import java.net.HttpURLConnection
 import java.net.URI
