@@ -5,11 +5,11 @@ import dev.isxander.yacl3.api.*
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder
 import dev.isxander.yacl3.api.controller.StringControllerBuilder
 import io.github.kuroka3.spotify4mc.client.api.classes.SpotifyToken
-import io.github.kuroka3.spotify4mc.client.api.classes.structures.SpotifyTrack
-import io.github.kuroka3.spotify4mc.client.api.utils.HttpRequestManager
 import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
 import io.github.kuroka3.spotify4mc.client.api.utils.TokenManager
+import io.github.kuroka3.spotify4mc.client.toast.IndicateManager
 import net.fabricmc.loader.api.FabricLoader
+import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
 
@@ -20,22 +20,22 @@ class SpotifyConfig {
     }
 
     var apiRequestInterval: Int = 20; private set
-    var trackRefreshInterval: Int = 1; private set
     var clientID: String = "YOUR_CLIENT_ID"; private set
     var clientSecret: String = "YOUR_CLIENT_SECRET"; private set
     var authServerPort: Int = 8080; private set
     var authServerIdleLimit = 300; private set
+    var displayWidth = 250; private set
     var token: SpotifyToken = SpotifyToken("token", "Bearer", "scope", 3600, "refresh")
 
     fun load() {
         if (!configFile.exists()) { return }
         val i = JsonManager.gson.fromJson<SpotifyConfig>(configFile.readText(), SpotifyConfig::class.java)
         this.apiRequestInterval = i.apiRequestInterval
-        this.trackRefreshInterval = i.trackRefreshInterval
         this.clientID = i.clientID
         this.clientSecret = i.clientSecret
         this.authServerPort = i.authServerPort
         this.authServerIdleLimit = i.authServerIdleLimit
+        this.displayWidth = i.displayWidth
         this.token = i.token
     }
 
@@ -48,6 +48,8 @@ class SpotifyConfig {
     }
 
     fun createGui(parent: Screen?): Screen {
+
+        // Intervals
         val apiRequestIntervalOption = Option.createBuilder<Int>()
             .name(Text.literal("API Request Interval"))
             .description(OptionDescription.of(Text.literal("An interval between each API request when indicating now playing info")))
@@ -62,20 +64,7 @@ class SpotifyConfig {
                 .formatValue { value -> Text.literal("$value ticks") }
             }.build()
 
-        val trackRefreshIntervalOption = Option.createBuilder<Int>()
-            .name(Text.literal("Track Refresh Interval"))
-            .description(OptionDescription.of(Text.literal("An interval between updating saved track progress info")))
-            .binding(
-                1,
-                { this.trackRefreshInterval },
-                { value -> this.trackRefreshInterval = value }
-            )
-            .controller { option -> IntegerSliderControllerBuilder.create(option)
-                .range(1, 20)
-                .step(1)
-                .formatValue { value -> Text.literal("$value ticks") }
-            }.build()
-
+        // Application
         val clientIDOption = Option.createBuilder<String>()
             .name(Text.literal("Client ID"))
             .description(OptionDescription.of(Text.literal("A Client ID to authorize token")))
@@ -135,12 +124,25 @@ class SpotifyConfig {
             .name(Text.literal("Debug Test"))
             .description(OptionDescription.of(Text.literal("Test Token")))
             .action { _, _ ->
-                HttpRequestManager.request("/tracks/50cMYPHnTCbrGYlEIfj34y", "GET") {
-                    println(it.statusCode)
-                    println(JsonManager.gson.fromJson(it.body, SpotifyTrack::class.java).name)
-                }
+                IndicateManager.startIndicate()
             }.build()
 
+        // Display
+        val displayWidthOption = Option.createBuilder<Int>()
+            .name(Text.literal("Display Width"))
+            .description(OptionDescription.of(Text.literal("A width of display container")))
+            .binding(
+                250,
+                { this.displayWidth },
+                { value -> this.displayWidth = value }
+            )
+            .controller { option -> IntegerSliderControllerBuilder.create(option)
+                .range(50, MinecraftClient.getInstance().window.scaledWidth)
+                .step(10)
+                .formatValue { value -> Text.literal("$value px") }
+            }.build()
+
+        // Sensitive
         val tokenOption = Option.createBuilder<String>()
             .name(Text.literal("Token"))
             .description(OptionDescription.of(Text.literal("A Token to request API")))
@@ -163,7 +165,6 @@ class SpotifyConfig {
                         .name(Text.literal("Intervals"))
                         .description(OptionDescription.of(Text.literal("Group of Interval Settings")))
                         .option(apiRequestIntervalOption)
-                        .option(trackRefreshIntervalOption)
                         .build())
                     .group(OptionGroup.createBuilder()
                         .name(Text.literal("Application"))
@@ -174,6 +175,11 @@ class SpotifyConfig {
                         .option(authServerIdleLimitOption)
                         .option(authorizeButton)
                         .option(debugTestButton)
+                        .build())
+                    .group(OptionGroup.createBuilder()
+                        .name(Text.literal("Display"))
+                        .description(OptionDescription.of(Text.literal("Group of Display Settings")))
+                        .option(displayWidthOption)
                         .build())
                     .group(OptionGroup.createBuilder()
                         .name(Text.literal("Sensitive"))
