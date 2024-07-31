@@ -56,7 +56,34 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
     modImplementation("com.terraformersmc:modmenu:11.0.1")
     modImplementation("dev.isxander:yet-another-config-lib:3.5.0+1.21-fabric")
-    implementation("io.javalin:javalin:6.1.3")
+    implementation("io.javalin:javalin:6.2.0")
+    include("io.javalin:javalin:6.2.0")
+    include("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24")
+    include("org.jetbrains.kotlin:kotlin-reflect:1.9.24")
+    include("org.jetbrains.kotlin:kotlin-stdlib-common:1.9.24")
+    include("org.jetbrains.kotlin:kotlin-stdlib:1.9.24")
+    include("org.jetbrains:annotations:24.1.0")
+    include("org.eclipse.jetty:jetty-bom:11.0.21")
+    include("org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:5.0.2")
+    include("org.eclipse.jetty:jetty-http:11.0.21")
+    include("org.eclipse.jetty:jetty-util:11.0.21")
+    include("org.eclipse.jetty:jetty-server:11.0.21")
+    include("org.eclipse.jetty:jetty-servlet:11.0.21")
+    include("org.eclipse.jetty:jetty-security:11.0.21")
+    include("org.eclipse.jetty:jetty-io:11.0.21")
+    include("com.fasterxml.jackson.core:jackson-core:2.17.1")
+    include("com.fasterxml.jackson.core:jackson-databind:2.17.1")
+    include("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.1")
+    include("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.1")
+    include("com.aayushatharva.brotli4j:brotli4j:1.16.0")
+    include("ch.qos.logback:logback-classic:1.5.6")
+    include("org.slf4j:slf4j-api:2.0.13")
+    include("org.slf4j:slf4j-simple:2.0.13")
+    include("com.squareup.okhttp3:okhttp:4.12.0")
+    include("com.squareup.okhttp3:okhttp-tls:4.12.0")
+    include("io.github.hakky54:sslcontext-kickstart:8.3.6")
+    include("io.github.hakky54:sslcontext-kickstart-for-jetty:8.3.6")
+    include("io.github.hakky54:sslcontext-kickstart-for-pem:8.3.6")
 }
 
 tasks.processResources {
@@ -92,6 +119,8 @@ tasks.jar {
     from("LICENSE") {
         rename { "${it}_${project.base.archivesName}" }
     }
+
+
 }
 
 // configure the maven publication
