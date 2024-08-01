@@ -1,4 +1,4 @@
-package io.github.kuroka3.spotify4mc.client.toast
+package io.github.kuroka3.spotify4mc.client.indicator
 
 import io.github.kuroka3.spotify4mc.client.api.classes.structures.SpotifyTrackState
 import io.github.kuroka3.spotify4mc.client.api.classes.structures.SpotifyTrack
@@ -8,6 +8,7 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.client.font.TextRenderer
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.RenderTickCounter
+import net.minecraft.text.OrderedText
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import java.net.URI
@@ -61,6 +62,11 @@ class SpotifyHudOverlay : HudRenderCallback {
         drawBackground(drawContext, x, y, windowWidth, windowHeight)
         drawAlbumArt(drawContext, x+9, y+6, albumArtSize)
         if ((width-18-albumArtSize.first) >= titleSize+5) drawTitle(drawContext, client.textRenderer, x+9+albumArtSize.first+10, y+6, trackName, trackArtist)
+        else if (width >= 60) {
+            val titleWrapped = client.textRenderer.wrapLines(trackName, width-18-albumArtSize.first-5)
+            drawTitle(drawContext, client.textRenderer, x+9+albumArtSize.first+10, y+6, titleWrapped[0], trackArtist)
+            titleSize = client.textRenderer.getWidth(titleWrapped[0])
+        }
         else titleSize = 0
         if ((width-18-albumArtSize.first-64) >= titleSize+5) drawSpotifyLogo(drawContext, windowWidth-9-64,y+6)
         else if ((width-18-albumArtSize.first-16) >= titleSize+5) drawSpotifyIcon(drawContext, windowWidth-9-16,y+6)
@@ -68,7 +74,7 @@ class SpotifyHudOverlay : HudRenderCallback {
     }
 
     private fun drawBackground(context: DrawContext, x: Int, y: Int, windowWidth: Int, windowHeight: Int) {
-        context.fill(x, y, windowWidth, windowHeight, 0x55000000)
+        context.fill(x, y, windowWidth, windowHeight, ColorManager.addAlphaToHexColor(ImageManager.dominantColor, 85))
     }
 
     private fun drawAlbumArt(context: DrawContext, x: Int, y: Int, albumArtSize: Pair<Int, Int>) {
@@ -102,6 +108,11 @@ class SpotifyHudOverlay : HudRenderCallback {
     }
 
     private fun drawTitle(context: DrawContext, renderer: TextRenderer, x: Int, y: Int, name: Text, artist: Text) {
+        context.drawText(renderer, name, x, y, (0xffffffff).toInt(), false)
+        context.drawText(renderer, artist, x, y+13, (0xffffffff).toInt(), false)
+    }
+
+    private fun drawTitle(context: DrawContext, renderer: TextRenderer, x: Int, y: Int, name: OrderedText, artist: Text) {
         context.drawText(renderer, name, x, y, (0xffffffff).toInt(), false)
         context.drawText(renderer, artist, x, y+13, (0xffffffff).toInt(), false)
     }

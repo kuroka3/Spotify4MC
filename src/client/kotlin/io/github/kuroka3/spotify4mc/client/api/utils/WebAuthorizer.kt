@@ -63,7 +63,7 @@ object WebAuthorizer {
             val responseCode = connection.responseCode
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 val responseBody = connection.inputStream.bufferedReader().use { it.readText() }
-                val token = JsonManager.gson.fromJson(responseBody, SpotifyToken::class.java)
+                val token = JsonManager.gson.fromJson(responseBody, SpotifyToken::class.java).setGrantedNow()
                 SpotifyConfig.instance.token = token
                 SpotifyConfig.instance.save()
                 ctx.result("LOGIN COMPLETE")

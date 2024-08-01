@@ -1,6 +1,6 @@
 package io.github.kuroka3.spotify4mc.client
 
-import io.github.kuroka3.spotify4mc.client.toast.SpotifyHudOverlay
+import io.github.kuroka3.spotify4mc.client.indicator.SpotifyHudOverlay
 import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback
 

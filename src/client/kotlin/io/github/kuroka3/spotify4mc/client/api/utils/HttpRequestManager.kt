@@ -20,7 +20,11 @@ object HttpRequestManager {
                 connection.outputStream.use { it.write(body) }
             }
 
-            callback(HttpResponse(connection.responseCode, connection.inputStream.bufferedReader().readText()))
+            if (connection.responseCode in 400..499) {
+                callback(HttpResponse(connection.responseCode, connection.errorStream.bufferedReader().readText()))
+            } else {
+                callback(HttpResponse(connection.responseCode, connection.inputStream.bufferedReader().readText()))
+            }
         }
         thread.start()
         return thread

@@ -1,4 +1,4 @@
-package io.github.kuroka3.spotify4mc.client.toast
+package io.github.kuroka3.spotify4mc.client.indicator
 
 import io.github.kuroka3.spotify4mc.client.api.classes.structures.SpotifyTrackState
 import io.github.kuroka3.spotify4mc.client.api.utils.HttpRequestManager

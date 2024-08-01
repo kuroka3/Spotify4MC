@@ -6,10 +6,14 @@ data class SpotifyToken(
     val scope: String,
     val expiresIn: Int,
     val refreshToken: String,
-    val grantedAt: Long = System.currentTimeMillis()
+    val grantedAt: Long
 ) {
     val isExpired: Boolean
         get() = System.currentTimeMillis() > (expiresIn*1000L) + grantedAt
+
+    fun setGrantedNow(): SpotifyToken {
+        return SpotifyToken(accessToken, tokenType, scope, expiresIn, refreshToken, System.currentTimeMillis())
+    }
 
     override fun toString() = "$tokenType $accessToken"
 }

@@ -7,7 +7,7 @@ import dev.isxander.yacl3.api.controller.StringControllerBuilder
 import io.github.kuroka3.spotify4mc.client.api.classes.SpotifyToken
 import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
 import io.github.kuroka3.spotify4mc.client.api.utils.TokenManager
-import io.github.kuroka3.spotify4mc.client.toast.IndicateManager
+import io.github.kuroka3.spotify4mc.client.indicator.IndicateManager
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.screen.Screen
@@ -25,7 +25,7 @@ class SpotifyConfig {
     var authServerPort: Int = 8080; private set
     var authServerIdleLimit = 300; private set
     var displayWidth = 250; private set
-    var token: SpotifyToken = SpotifyToken("token", "Bearer", "scope", 3600, "refresh")
+    var token: SpotifyToken = SpotifyToken("token", "Bearer", "scope", 3600, "refresh", System.currentTimeMillis())
 
     fun load() {
         if (!configFile.exists()) { return }
