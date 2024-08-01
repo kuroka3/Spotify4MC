@@ -9,7 +9,7 @@ import javax.imageio.ImageIO
 
 object ImageManager {
 
-    var trackJacket: Identifier? = null; private set
+    var albumArt: Identifier? = null; private set
     private var lastId: String = ""
 
     fun loadImage(imgURL: URL, id: String, callback: () -> Unit = {}) {
@@ -17,7 +17,7 @@ object ImageManager {
             try {
                 if (lastId == id) { callback(); return@Thread }
 
-                val prevTrackJacket = trackJacket
+                val prevAlbumArt = albumArt
                 val img = ImageIO.read(imgURL)
                 val nativeImg = NativeImage(img.width, img.height, false)
                 for (x in 0 until img.width) {
@@ -26,10 +26,10 @@ object ImageManager {
                     }
                 }
 
-                trackJacket = MinecraftClient.getInstance().textureManager.registerDynamicTexture("spotify4mc.track_jacket", NativeImageBackedTexture(nativeImg))
+                albumArt = MinecraftClient.getInstance().textureManager.registerDynamicTexture("spotify4mc.album_artwork", NativeImageBackedTexture(nativeImg))
                 lastId = id
 
-                if (prevTrackJacket != null) MinecraftClient.getInstance().textureManager.destroyTexture(prevTrackJacket)
+                if (prevAlbumArt != null) MinecraftClient.getInstance().textureManager.destroyTexture(prevAlbumArt)
 
                 callback()
                 return@Thread

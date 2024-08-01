@@ -16,7 +16,7 @@ class SpotifyToast(val track: SpotifyTrack, val displayTime: Long = 5000L) : Toa
 
     override fun draw(context: DrawContext, manager: ToastManager, startTime: Long): Toast.Visibility {
         drawBackground(context)
-        ImageManager.trackJacket?.let { drawTexture(it, context) }
+        ImageManager.albumArt?.let { drawTexture(it, context) }
         drawText(context, Text.literal(track.name), Text.literal(track.artists.joinToString(", ") { it.name }), MinecraftClient.getInstance().textRenderer, startTime)
 
         return if (startTime >= displayTime) {
