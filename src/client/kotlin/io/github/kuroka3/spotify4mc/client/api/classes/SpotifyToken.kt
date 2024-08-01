@@ -15,5 +15,9 @@ data class SpotifyToken(
         return SpotifyToken(accessToken, tokenType, scope, expiresIn, refreshToken, System.currentTimeMillis())
     }
 
+    fun setRefreshed(refreshToken: String): SpotifyToken {
+        return SpotifyToken(accessToken, tokenType, scope, expiresIn, refreshToken, System.currentTimeMillis())
+    }
+
     override fun toString() = "$tokenType $accessToken"
 }

@@ -4,6 +4,8 @@ import io.github.kuroka3.spotify4mc.client.api.classes.structures.SpotifyTrackSt
 import io.github.kuroka3.spotify4mc.client.api.utils.HttpRequestManager
 import io.github.kuroka3.spotify4mc.client.api.utils.TokenManager
 import io.github.kuroka3.spotify4mc.client.utils.SpotifyConfig
+import net.minecraft.client.MinecraftClient
+import net.minecraft.text.Text
 import java.util.*
 
 object IndicateManager {
@@ -15,6 +17,7 @@ object IndicateManager {
             override fun run() {
                 Thread {
                     val token = SpotifyConfig.instance.token
+                    if (token.accessToken == "token") { MinecraftClient.getInstance().player?.sendMessage(Text.literal("Login First")); stopIndicate() }
                     if (token.isExpired) TokenManager.refreshToken()
                     HttpRequestManager.request("/me/player", "GET") {
                         try {

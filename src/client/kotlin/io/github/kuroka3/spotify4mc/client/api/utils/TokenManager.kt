@@ -29,7 +29,8 @@ object TokenManager {
         val responseCode = connection.responseCode
         return if (responseCode == HttpURLConnection.HTTP_OK) {
             val responseBody = connection.inputStream.bufferedReader().use { it.readText() }
-            val refreshedToken = JsonManager.gson.fromJson(responseBody, SpotifyToken::class.java).setGrantedNow()
+            println(responseBody)
+            val refreshedToken = JsonManager.gson.fromJson(responseBody, SpotifyToken::class.java).setRefreshed(refreshToken)
             SpotifyConfig.instance.token = refreshedToken
             SpotifyConfig.instance.save()
             true

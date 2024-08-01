@@ -15,8 +15,8 @@ import java.net.URI
 import kotlin.math.roundToInt
 
 class SpotifyHudOverlay : HudRenderCallback {
-    private val SPOTIFY_LOGO = Identifier.of("spotify4mc", "spotify/logo.png")
-    private val SPOTIFY_ICON = Identifier.of("spotify4mc", "spotify/icon.png")
+    private val SPOTIFY_LOGO = Identifier.of("spotify4mc", "textures/spotify/logo.png")
+    private val SPOTIFY_ICON = Identifier.of("spotify4mc", "textures/spotify/icon.png")
 
     companion object {
         val instance = SpotifyHudOverlay()
@@ -33,7 +33,7 @@ class SpotifyHudOverlay : HudRenderCallback {
 
     private var track: SpotifyTrack? = null
     private var currentMs: Int = 0
-    private var isPlaying: Boolean = false
+    var isPlaying: Boolean = false
 
     private var lastUpdate: Long = System.currentTimeMillis()
 
@@ -41,6 +41,7 @@ class SpotifyHudOverlay : HudRenderCallback {
         if (ImageManager.albumArt == null || track == null) { lastUpdate = System.currentTimeMillis(); return }
 
         if (isPlaying) currentMs += (System.currentTimeMillis() - lastUpdate).toInt()
+        if (currentMs >= track!!.durationMs) currentMs = track!!.durationMs
         lastUpdate = System.currentTimeMillis()
 
         val client = MinecraftClient.getInstance()
@@ -57,15 +58,22 @@ class SpotifyHudOverlay : HudRenderCallback {
         val trackName = Text.literal(track!!.name)
         val trackArtist = Text.literal(track!!.artists.joinToString(", ") { it.name } )
 
-        var titleSize = client.textRenderer.getWidth(trackName)
+        val trackNameSize = client.textRenderer.getWidth(trackName)
+        val trackArtistSize = client.textRenderer.getWidth(trackArtist)
+        var titleSize = if (trackNameSize > trackArtistSize) trackNameSize else trackArtistSize
 
         drawBackground(drawContext, x, y, windowWidth, windowHeight)
         drawAlbumArt(drawContext, x+9, y+6, albumArtSize)
         if ((width-18-albumArtSize.first) >= titleSize+5) drawTitle(drawContext, client.textRenderer, x+9+albumArtSize.first+10, y+6, trackName, trackArtist)
         else if (width >= 60) {
-            val titleWrapped = client.textRenderer.wrapLines(trackName, width-18-albumArtSize.first-5)
-            drawTitle(drawContext, client.textRenderer, x+9+albumArtSize.first+10, y+6, titleWrapped[0], trackArtist)
-            titleSize = client.textRenderer.getWidth(titleWrapped[0])
+            val trackNameWrapped = client.textRenderer.wrapLines(trackName, width-18-albumArtSize.first-5)
+            val trackArtistWrapped = client.textRenderer.wrapLines(trackArtist, width-18-albumArtSize.first-5)
+            drawTitle(drawContext, client.textRenderer, x+9+albumArtSize.first+10, y+6, trackNameWrapped[0], trackArtistWrapped[0])
+
+            val wrappedTrackNameSize = client.textRenderer.getWidth(trackNameWrapped[0])
+            val wrappedTrackArtistSize = client.textRenderer.getWidth(trackArtistWrapped[0])
+
+            titleSize = if (wrappedTrackNameSize > wrappedTrackArtistSize) wrappedTrackNameSize else wrappedTrackArtistSize
         }
         else titleSize = 0
         if ((width-18-albumArtSize.first-64) >= titleSize+5) drawSpotifyLogo(drawContext, windowWidth-9-64,y+6)
@@ -112,7 +120,7 @@ class SpotifyHudOverlay : HudRenderCallback {
         context.drawText(renderer, artist, x, y+13, (0xffffffff).toInt(), false)
     }
 
-    private fun drawTitle(context: DrawContext, renderer: TextRenderer, x: Int, y: Int, name: OrderedText, artist: Text) {
+    private fun drawTitle(context: DrawContext, renderer: TextRenderer, x: Int, y: Int, name: OrderedText, artist: OrderedText) {
         context.drawText(renderer, name, x, y, (0xffffffff).toInt(), false)
         context.drawText(renderer, artist, x, y+13, (0xffffffff).toInt(), false)
     }
