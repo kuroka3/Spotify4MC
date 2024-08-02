@@ -10,7 +10,7 @@ import javax.imageio.ImageIO
 object ImageManager {
 
     var albumArt: Identifier? = null; private set
-    var dominantColor: Int = 0; private set
+    var dominantColor: Int = 0x00191414; private set
     private var lastId: String = ""
 
     fun loadImage(imgURL: URL, id: String, callback: () -> Unit = {}) {
@@ -40,5 +40,12 @@ object ImageManager {
                 return@Thread
             }
         }.start()
+    }
+
+    fun reset() {
+        if (albumArt != null) { MinecraftClient.getInstance().textureManager.destroyTexture(albumArt) }
+        albumArt = null
+        dominantColor = 0x00191414
+        lastId = ""
     }
 }

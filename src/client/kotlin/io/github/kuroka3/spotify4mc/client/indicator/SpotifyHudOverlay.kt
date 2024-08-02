@@ -25,7 +25,7 @@ class SpotifyHudOverlay : HudRenderCallback {
             val track = state.item
             val img = track.album.images[0]
             instance.track = track
-            ImageManager.loadImage(URI(img.url).toURL(), track.id)
+            if (SpotifyConfig.instance.showAlbumArt) ImageManager.loadImage(URI(img.url).toURL(), track.id)
             instance.currentMs = state.progressMs
             instance.isPlaying = state.isPlaying
         }
@@ -38,7 +38,7 @@ class SpotifyHudOverlay : HudRenderCallback {
     private var lastUpdate: Long = System.currentTimeMillis()
 
     override fun onHudRender(drawContext: DrawContext, tickCounter: RenderTickCounter) {
-        if (ImageManager.albumArt == null || track == null) { lastUpdate = System.currentTimeMillis(); return }
+        if ((SpotifyConfig.instance.showAlbumArt && ImageManager.albumArt == null) || track == null) { lastUpdate = System.currentTimeMillis(); return }
 
         if (isPlaying) currentMs += (System.currentTimeMillis() - lastUpdate).toInt()
         if (currentMs >= track!!.durationMs) currentMs = track!!.durationMs
@@ -48,57 +48,47 @@ class SpotifyHudOverlay : HudRenderCallback {
         val windowWidth = client.window.scaledWidth
         val windowHeight = client.window.scaledHeight
 
-        val albumArtSize = Pair(32, 32)
+        val albumArtSize = if (SpotifyConfig.instance.showAlbumArt) Pair(32, 32) else Pair(-9, 0)
         val width = SpotifyConfig.instance.displayWidth
         val height = 50
 
         val x = windowWidth - width
         val y = windowHeight - height
 
+        val hudSquare = HudSquare(x, y, windowWidth, windowHeight)
+
         val trackName = Text.literal(track!!.name)
         val trackArtist = Text.literal(track!!.artists.joinToString(", ") { it.name } )
 
-        val trackNameSize = client.textRenderer.getWidth(trackName)
-        val trackArtistSize = client.textRenderer.getWidth(trackArtist)
-        var titleSize = if (trackNameSize > trackArtistSize) trackNameSize else trackArtistSize
+        val titleSize = if (SpotifyConfig.instance.showTrackInfo) calculateTitle(client.textRenderer, trackName, trackArtist, width-(9+albumArtSize.first+10+5)).first else -10
 
-        drawBackground(drawContext, x, y, windowWidth, windowHeight)
-        drawAlbumArt(drawContext, x+9, y+6, albumArtSize)
-        if ((width-18-albumArtSize.first) >= titleSize+5) drawTitle(drawContext, client.textRenderer, x+9+albumArtSize.first+10, y+6, trackName, trackArtist)
-        else if (width >= 60) {
-            val trackNameWrapped = client.textRenderer.wrapLines(trackName, width-18-albumArtSize.first-5)
-            val trackArtistWrapped = client.textRenderer.wrapLines(trackArtist, width-18-albumArtSize.first-5)
-            drawTitle(drawContext, client.textRenderer, x+9+albumArtSize.first+10, y+6, trackNameWrapped[0], trackArtistWrapped[0])
-
-            val wrappedTrackNameSize = client.textRenderer.getWidth(trackNameWrapped[0])
-            val wrappedTrackArtistSize = client.textRenderer.getWidth(trackArtistWrapped[0])
-
-            titleSize = if (wrappedTrackNameSize > wrappedTrackArtistSize) wrappedTrackNameSize else wrappedTrackArtistSize
-        }
-        else titleSize = 0
-        if ((width-18-albumArtSize.first-64) >= titleSize+5) drawSpotifyLogo(drawContext, windowWidth-9-64,y+6)
-        else if ((width-18-albumArtSize.first-16) >= titleSize+5) drawSpotifyIcon(drawContext, windowWidth-9-16,y+6)
-        drawProgressBar(drawContext, x+9, windowHeight-8, currentMs.toFloat()/track!!.durationMs.toFloat())
+        drawBackground(drawContext, hudSquare)
+        drawAlbumArt(drawContext, hudSquare, albumArtSize, Margin(9, 6, 0, 0))
+        drawTitle(drawContext, client.textRenderer, hudSquare, Margin(9+albumArtSize.first+10, 6, 5, 0), trackName, trackArtist)
+        drawProgressBar(drawContext, hudSquare, Margin(9, 0, 9, 8), currentMs.toFloat()/track!!.durationMs.toFloat())
+        drawSpotifyLogo(drawContext, hudSquare, Margin(9+albumArtSize.first+10+titleSize+5, 6, 9, 0))
     }
 
-    private fun drawBackground(context: DrawContext, x: Int, y: Int, windowWidth: Int, windowHeight: Int) {
-        context.fill(x, y, windowWidth, windowHeight, ColorManager.addAlphaToHexColor(ImageManager.dominantColor, 85))
+    private fun drawBackground(context: DrawContext, hudSquare: HudSquare) {
+        context.fill(hudSquare.x1, hudSquare.y1, hudSquare.x2, hudSquare.y2, ColorManager.addAlphaToHexColor(ImageManager.dominantColor, 85))
     }
 
-    private fun drawAlbumArt(context: DrawContext, x: Int, y: Int, albumArtSize: Pair<Int, Int>) {
-        context.drawTexture(ImageManager.albumArt, x, y, 0f, 0f, albumArtSize.first, albumArtSize.second, albumArtSize.first, albumArtSize.second)
+    private fun drawAlbumArt(context: DrawContext, hudSquare: HudSquare, albumArtSize: Pair<Int, Int>, margin: Margin) {
+        if (SpotifyConfig.instance.showAlbumArt) context.drawTexture(ImageManager.albumArt, hudSquare.x1+margin.left, hudSquare.y1+margin.top, 0f, 0f, albumArtSize.first, albumArtSize.second, albumArtSize.first, albumArtSize.second)
     }
 
-    private fun drawSpotifyLogo(context: DrawContext, x: Int, y: Int) {
-        context.drawTexture(SPOTIFY_LOGO, x, y, 0f, 0f, 64, 16, 64, 16)
+    private fun drawSpotifyLogo(context: DrawContext, hudSquare: HudSquare, margin: Margin) {
+        val width = hudSquare.x2 - hudSquare.x1
+
+        if ((width-margin.left-margin.right) >= 69) context.drawTexture(SPOTIFY_LOGO, hudSquare.x2-margin.right-64, hudSquare.y1+margin.top, 0f, 0f, 64, 16, 64, 16)
+        else if ((width-margin.left-margin.right) >= 21) context.drawTexture(SPOTIFY_ICON, hudSquare.x2-margin.right-16, hudSquare.y1+margin.top, 0f, 0f, 16, 16, 16, 16)
     }
 
-    private fun drawSpotifyIcon(context: DrawContext, x: Int, y: Int) {
-        context.drawTexture(SPOTIFY_ICON, x, y, 0f, 0f, 16, 16, 16, 16)
-    }
+    private fun drawProgressBar(context: DrawContext, hudSquare: HudSquare, margin: Margin, value: Float) {
+        val totalPixels = SpotifyConfig.instance.displayWidth - margin.left - margin.right
+        val x = hudSquare.x1 + margin.left
+        val y = hudSquare.y2 - margin.bottom
 
-    private fun drawProgressBar(context: DrawContext, x: Int, y: Int, value: Float) {
-        val totalPixels = SpotifyConfig.instance.displayWidth - 18
         val emptyColor = (0xff909090).toInt()
         val filledColor = (0xffffffff).toInt()
 
@@ -115,13 +105,27 @@ class SpotifyHudOverlay : HudRenderCallback {
         }
     }
 
-    private fun drawTitle(context: DrawContext, renderer: TextRenderer, x: Int, y: Int, name: Text, artist: Text) {
-        context.drawText(renderer, name, x, y, (0xffffffff).toInt(), false)
-        context.drawText(renderer, artist, x, y+13, (0xffffffff).toInt(), false)
+    private fun drawTitle(context: DrawContext, renderer: TextRenderer, hudSquare: HudSquare, margin: Margin, name: Text, artist: Text) {
+        if (!SpotifyConfig.instance.showTrackInfo) return
+
+        val width = hudSquare.x2 - hudSquare.x1
+        val title = calculateTitle(renderer, name, artist, width-margin.left-margin.right)
+
+        context.drawText(renderer, title.second.first, hudSquare.x1+margin.left, hudSquare.y1+margin.top, (0xffffffff).toInt(), true)
+        context.drawText(renderer, title.second.second, hudSquare.x1+margin.left, hudSquare.y1+margin.top+13, (0xffffffff).toInt(), true)
     }
 
-    private fun drawTitle(context: DrawContext, renderer: TextRenderer, x: Int, y: Int, name: OrderedText, artist: OrderedText) {
-        context.drawText(renderer, name, x, y, (0xffffffff).toInt(), false)
-        context.drawText(renderer, artist, x, y+13, (0xffffffff).toInt(), false)
+    private fun calculateTitle(renderer: TextRenderer, name: Text, artist: Text, sizeLimit: Int): Pair<Int, Pair<OrderedText, OrderedText>> {
+        val nameWrapped = renderer.wrapLines(name, sizeLimit)
+        val artistWrapped = renderer.wrapLines(artist, sizeLimit)
+
+        val nameSizeWrapped = renderer.getWidth(nameWrapped[0])
+        val artistSizeWrapped = renderer.getWidth(artistWrapped[0])
+        val titleSize = if(nameSizeWrapped > artistSizeWrapped) nameSizeWrapped else artistSizeWrapped
+
+        return Pair(titleSize, Pair(nameWrapped[0], artistWrapped[0]))
     }
+
+    private data class HudSquare(val x1: Int, val y1: Int, val x2: Int, val y2: Int)
+    private data class Margin(val left: Int, val top: Int, val right: Int, val bottom: Int)
 }

@@ -4,9 +4,11 @@ import com.google.gson.GsonBuilder
 import dev.isxander.yacl3.api.*
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder
 import dev.isxander.yacl3.api.controller.StringControllerBuilder
+import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder
 import io.github.kuroka3.spotify4mc.client.api.classes.SpotifyToken
 import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
 import io.github.kuroka3.spotify4mc.client.api.utils.TokenManager
+import io.github.kuroka3.spotify4mc.client.indicator.ImageManager
 import io.github.kuroka3.spotify4mc.client.indicator.IndicateManager
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
@@ -25,6 +27,8 @@ class SpotifyConfig {
     var authServerPort: Int = 8080; private set
     var authServerIdleLimit = 300; private set
     var displayWidth = 250; private set
+    var showAlbumArt = true; private set
+    var showTrackInfo = true; private set
     var token: SpotifyToken = SpotifyToken("token", "Bearer", "scope", 3600, "refresh", System.currentTimeMillis())
 
     fun load() {
@@ -36,6 +40,8 @@ class SpotifyConfig {
         this.authServerPort = i.authServerPort
         this.authServerIdleLimit = i.authServerIdleLimit
         this.displayWidth = i.displayWidth
+        this.showAlbumArt = i.showAlbumArt
+        this.showTrackInfo = i.showTrackInfo
         this.token = i.token
     }
 
@@ -142,6 +148,28 @@ class SpotifyConfig {
                 .formatValue { value -> Text.literal("$value px") }
             }.build()
 
+        val showAlbumArtOption = Option.createBuilder<Boolean>()
+            .name(Text.literal("Show Album Art"))
+            .description(OptionDescription.of(Text.literal("Load and Show Album Art to HUD")))
+            .binding(
+                true,
+                { this.showAlbumArt },
+                { value -> this.showAlbumArt = value; ImageManager.reset() }
+            )
+            .controller(TickBoxControllerBuilder::create)
+            .build()
+
+        val showTrackInfoOption = Option.createBuilder<Boolean>()
+            .name(Text.literal("Show Track Info"))
+            .description(OptionDescription.of(Text.literal("Show Track Info like title, artist, etc. to HUD")))
+            .binding(
+                true,
+                { this.showTrackInfo },
+                { value -> this.showTrackInfo = value }
+            )
+            .controller(TickBoxControllerBuilder::create)
+            .build()
+
         // Sensitive
         val tokenOption = Option.createBuilder<String>()
             .name(Text.literal("Token"))
@@ -180,6 +208,8 @@ class SpotifyConfig {
                         .name(Text.literal("Display"))
                         .description(OptionDescription.of(Text.literal("Group of Display Settings")))
                         .option(displayWidthOption)
+                        .option(showAlbumArtOption)
+                        .option(showTrackInfoOption)
                         .build())
                     .group(OptionGroup.createBuilder()
                         .name(Text.literal("Sensitive"))

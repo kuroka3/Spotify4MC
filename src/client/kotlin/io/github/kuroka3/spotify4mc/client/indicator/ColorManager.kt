@@ -59,7 +59,7 @@ object ColorManager {
             val me = list[list.size - 1] as Map.Entry<Int, Int>
             return me.key
         } catch (e: IndexOutOfBoundsException) {
-            return 0x00000000
+            return 0x00191414
         }
     }
 
