@@ -1,6 +1,5 @@
 package io.github.kuroka3.spotify4mc.client.indicator
 
-import io.github.kuroka3.spotify4mc.client.api.classes.structures.SpotifyTrackState
 import io.github.kuroka3.spotify4mc.client.api.classes.structures.SpotifyTrack
 import io.github.kuroka3.spotify4mc.client.utils.SpotifyConfig
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback
@@ -21,7 +20,8 @@ class SpotifyHudOverlay : HudRenderCallback {
     companion object {
         val instance = SpotifyHudOverlay()
 
-        fun indicateState(state: SpotifyTrackState) {
+        fun indicateState() {
+            val state = IndicateManager.currentState
             val track = state.item
             val img = track.album.images[0]
             instance.track = track

@@ -1,5 +1,6 @@
 package io.github.kuroka3.spotify4mc.client.indicator
 
+import io.github.kuroka3.spotify4mc.client.screens.SpotifyControllerScreen
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.texture.NativeImage
 import net.minecraft.client.texture.NativeImageBackedTexture
@@ -33,6 +34,7 @@ object ImageManager {
 
                 if (prevAlbumArt != null) MinecraftClient.getInstance().textureManager.destroyTexture(prevAlbumArt)
 
+                SpotifyControllerScreen.instance.refreshTrack()
                 callback()
                 return@Thread
             } catch (e: Exception) {
@@ -47,5 +49,7 @@ object ImageManager {
         albumArt = null
         dominantColor = 0x00191414
         lastId = ""
+
+        SpotifyControllerScreen.instance.refreshTrack()
     }
 }

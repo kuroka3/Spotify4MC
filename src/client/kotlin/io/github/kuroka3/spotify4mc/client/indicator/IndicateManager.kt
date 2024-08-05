@@ -9,6 +9,8 @@ import net.minecraft.text.Text
 import java.util.*
 
 object IndicateManager {
+    lateinit var currentState: SpotifyTrackState
+
     private lateinit var timer: Timer
 
     fun startIndicate() {
@@ -21,8 +23,8 @@ object IndicateManager {
                     if (token.isExpired) TokenManager.refreshToken()
                     HttpRequestManager.request("/me/player", "GET") {
                         try {
-                            val state = SpotifyTrackState.fromJson(it.body!!)
-                            SpotifyHudOverlay.indicateState(state)
+                            currentState = SpotifyTrackState.fromJson(it.body!!)
+                            SpotifyHudOverlay.indicateState()
                         } catch (e: Exception) {
                             e.printStackTrace()
                             stopIndicate()

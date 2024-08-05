@@ -1,6 +1,7 @@
 {
-  "spotify4mc.key.category.spotify_player_control": "Spotify Player Control",
+  "spotify4mc.key.category.spotify4mc": "Spotify4MC",
   "spotify4mc.key.next": "Next",
   "spotify4mc.key.prev": "Previous",
-  "spotify4mc.key.pause_resume": "Pause/Resume"
+  "spotify4mc.key.pause_resume": "Pause/Resume",
+  "spotify4mc.key.open_controller": "Open Spotify Controller"
 }

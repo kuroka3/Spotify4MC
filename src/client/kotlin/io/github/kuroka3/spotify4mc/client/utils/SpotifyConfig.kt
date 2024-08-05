@@ -2,7 +2,6 @@ package io.github.kuroka3.spotify4mc.client.utils
 
 import com.google.gson.GsonBuilder
 import dev.isxander.yacl3.api.*
-import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder
 import dev.isxander.yacl3.api.controller.StringControllerBuilder
 import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder
@@ -11,7 +10,6 @@ import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
 import io.github.kuroka3.spotify4mc.client.api.utils.TokenManager
 import io.github.kuroka3.spotify4mc.client.indicator.ImageManager
 import io.github.kuroka3.spotify4mc.client.indicator.IndicateManager
-import io.github.kuroka3.spotify4mc.client.indicator.SpotifyHudOverlay
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.screen.Screen
