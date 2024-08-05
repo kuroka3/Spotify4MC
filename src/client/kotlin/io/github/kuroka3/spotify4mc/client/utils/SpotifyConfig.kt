@@ -2,6 +2,7 @@ package io.github.kuroka3.spotify4mc.client.utils
 
 import com.google.gson.GsonBuilder
 import dev.isxander.yacl3.api.*
+import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder
 import dev.isxander.yacl3.api.controller.StringControllerBuilder
 import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder
@@ -10,14 +11,16 @@ import io.github.kuroka3.spotify4mc.client.api.utils.JsonManager
 import io.github.kuroka3.spotify4mc.client.api.utils.TokenManager
 import io.github.kuroka3.spotify4mc.client.indicator.ImageManager
 import io.github.kuroka3.spotify4mc.client.indicator.IndicateManager
+import io.github.kuroka3.spotify4mc.client.indicator.SpotifyHudOverlay
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
+import kotlin.math.roundToInt
 
 class SpotifyConfig {
     companion object{
-        val configFile = FabricLoader.getInstance().configDir.resolve("spotify_config.json5").toFile()
+        val configFile = FabricLoader.getInstance().configDir.resolve("spotify4mc.config").toFile()
         val instance = SpotifyConfig().apply { load() }
     }
 
@@ -27,6 +30,7 @@ class SpotifyConfig {
     var authServerPort: Int = 8080; private set
     var authServerIdleLimit = 300; private set
     var displayWidth = 250; private set
+    var backgroundOpacity = 0.33f; private set
     var showAlbumArt = true; private set
     var showTrackInfo = true; private set
     var token: SpotifyToken = SpotifyToken("token", "Bearer", "scope", 3600, "refresh", System.currentTimeMillis())
@@ -40,6 +44,7 @@ class SpotifyConfig {
         this.authServerPort = i.authServerPort
         this.authServerIdleLimit = i.authServerIdleLimit
         this.displayWidth = i.displayWidth
+        this.backgroundOpacity = i.backgroundOpacity
         this.showAlbumArt = i.showAlbumArt
         this.showTrackInfo = i.showTrackInfo
         this.token = i.token
@@ -49,7 +54,7 @@ class SpotifyConfig {
         if (!configFile.exists()) {
             configFile.createNewFile()
         }
-        val gson = GsonBuilder().setFieldNamingStrategy { it.name.replace(Regex("([a-z])([A-Z])"), "$1_$2").lowercase() }.create()
+        val gson = GsonBuilder().setPrettyPrinting().setFieldNamingStrategy { it.name.replace(Regex("([a-z])([A-Z])"), "$1_$2").lowercase() }.create()
         configFile.writeText(gson.toJson(this))
     }
 
@@ -148,6 +153,20 @@ class SpotifyConfig {
                 .formatValue { value -> Text.literal("$value px") }
             }.build()
 
+        val backgroundOpacityOption = Option.createBuilder<Int>()
+            .name(Text.literal("Background Opacity"))
+            .description(OptionDescription.of(Text.literal("An Opacity of HUD")))
+            .binding(
+                33,
+                { (this.backgroundOpacity*100).roundToInt() },
+                { value -> this.backgroundOpacity = (value.toFloat()*0.01f) }
+            )
+            .controller { option -> IntegerSliderControllerBuilder.create(option)
+                .range(0, 100)
+                .step(1)
+                .formatValue { value -> Text.literal("$value%") }
+            }.build()
+
         val showAlbumArtOption = Option.createBuilder<Boolean>()
             .name(Text.literal("Show Album Art"))
             .description(OptionDescription.of(Text.literal("Load and Show Album Art to HUD")))
@@ -208,6 +227,7 @@ class SpotifyConfig {
                         .name(Text.literal("Display"))
                         .description(OptionDescription.of(Text.literal("Group of Display Settings")))
                         .option(displayWidthOption)
+                        .option(backgroundOpacityOption)
                         .option(showAlbumArtOption)
                         .option(showTrackInfoOption)
                         .build())

@@ -70,7 +70,7 @@ class SpotifyHudOverlay : HudRenderCallback {
     }
 
     private fun drawBackground(context: DrawContext, hudSquare: HudSquare) {
-        context.fill(hudSquare.x1, hudSquare.y1, hudSquare.x2, hudSquare.y2, ColorManager.addAlphaToHexColor(ImageManager.dominantColor, 85))
+        context.fill(hudSquare.x1, hudSquare.y1, hudSquare.x2, hudSquare.y2, ColorManager.addAlphaToHexColor(ImageManager.dominantColor, (SpotifyConfig.instance.backgroundOpacity*255).roundToInt()))
     }
 
     private fun drawAlbumArt(context: DrawContext, hudSquare: HudSquare, albumArtSize: Pair<Int, Int>, margin: Margin) {
