@@ -1,9 +1,9 @@
 package io.github.kuroka3.spotify4mc.client.screens
 
 import io.github.kuroka3.spotify4mc.client.controller.SpotifyController
-import io.github.kuroka3.spotify4mc.client.indicator.ImageManager
-import io.github.kuroka3.spotify4mc.client.indicator.IndicateManager
-import io.github.kuroka3.spotify4mc.client.indicator.SpotifyHudOverlay
+import io.github.kuroka3.spotify4mc.client.indicator.*
+import io.github.kuroka3.spotify4mc.client.indicator.ColorManager.addAlphaToHexColor
+import io.github.kuroka3.spotify4mc.client.screens.widget.SquareWidget
 import io.github.kuroka3.spotify4mc.client.utils.SpotifyConfig
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.screen.Screen
@@ -12,48 +12,125 @@ import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.IconWidget
 import net.minecraft.client.gui.widget.TextWidget
 import net.minecraft.text.Text
+import net.minecraft.util.Identifier
+import kotlin.math.roundToInt
 
 class SpotifyControllerScreen : Screen(Text.literal("Spotify Controller Screen")) {
+
+    private val SPOTIFY_LOGO = Identifier.of("spotify4mc", "textures/spotify/logo.png")
 
     companion object {
         val instance: SpotifyControllerScreen = SpotifyControllerScreen()
     }
 
+    private lateinit var start: Pair<Int, Int>
+    private lateinit var size: Pair<Int, Int>
+
+    private lateinit var backgroundWidget: SquareWidget
+
     private lateinit var albumArtWidget: IconWidget
     private lateinit var titleWidget: TextWidget
     private lateinit var artistWidget: TextWidget
+    private lateinit var progressFilled: SquareWidget
+    private lateinit var progressEmpty: SquareWidget
+    private lateinit var spotifyLogoWidget: IconWidget
 
     private lateinit var previousButton: ButtonWidget
     private lateinit var pauseResumeButton: ButtonWidget
     private lateinit var nextButton: ButtonWidget
 
     override fun init() {
-        if (SpotifyConfig.instance.showAlbumArt) initAlbumArtWidget()
-        initTextWidgets()
+        val title = Text.literal(IndicateManager.currentState.item.name)
+        val artist = Text.literal(IndicateManager.currentState.item.artists.joinToString(", ") { it.name } )
+        val titleSize = TextManager.calculateTitle(client!!.textRenderer, title, artist, Int.MAX_VALUE)
+
+        val indicatorWidth = (if (SpotifyConfig.instance.showAlbumArt) 32+10 else 0)+9+titleSize.first+64+5+9
+        val indicatorHeight = 50
+        start = Pair(width/2 - indicatorWidth/2, height/2 - indicatorHeight/2)
+        size = Pair(indicatorWidth, indicatorHeight)
+
+        initBackground(start)
+        if (SpotifyConfig.instance.showAlbumArt) initAlbumArtWidget(start)
+        initTextWidgets(start)
+        initProgressWidget(start, IndicateManager.currentMs.toFloat()/IndicateManager.currentState.item.durationMs.toFloat())
+        initSpotifyLogoWidget(start)
+
         initButtonWidgets()
     }
 
-    fun refreshTrack() {
-        if (SpotifyConfig.instance.showAlbumArt) {
-            remove(albumArtWidget)
-            initAlbumArtWidget()
+    fun refresh() {
+        client!!.execute {
+            client!!.setScreen(instance)
         }
-
-        remove(titleWidget)
-        remove(artistWidget)
-
-        initTextWidgets()
     }
 
-    private fun initAlbumArtWidget() {
-        albumArtWidget = IconWidget.create(64, 64, ImageManager.albumArt, 64, 64)
-        albumArtWidget.x = width/2 - 32
-        albumArtWidget.y = height/2 - 67
+    fun refreshProgressOnly() {
+        if (::progressEmpty.isInitialized && ::progressFilled.isInitialized) initProgressWidget(start, IndicateManager.currentMs.toFloat()/IndicateManager.currentState.item.durationMs.toFloat(), refresh = true)
+    }
+
+    private fun initBackground(start: Pair<Int, Int>) {
+        backgroundWidget = SquareWidget(start.first, start.second, size.first, size.second, ImageManager.dominantColor.addAlphaToHexColor((SpotifyConfig.instance.backgroundOpacity*255).roundToInt()))
+
+        addDrawableChild(backgroundWidget)
+    }
+
+    private fun initAlbumArtWidget(start: Pair<Int, Int>) {
+        albumArtWidget = IconWidget.create(32, 32, ImageManager.albumArt, 32, 32)
+        albumArtWidget.x = start.first + 9
+        albumArtWidget.y = start.second + 6
 
         addDrawableChild(albumArtWidget)
     }
 
-    private fun initTextWidgets() {
+    private fun initProgressWidget(start: Pair<Int, Int>, value: Float, refresh: Boolean = false) {
+        val totalPixels = size.first - 18
+        val x = start.first + 9
+        val y = start.second + size.second - 8
+
+        val emptyColor = (0xff909090).toInt()
+        val filledColor = (0xffffffff).toInt()
+
+        val filledPixels = (value*totalPixels.toFloat()).roundToInt()
+        val emptyPixels = totalPixels - filledPixels
+
+        if (refresh) {
+            when(0) {
+                filledPixels -> {
+                    progressFilled.width = 0
+                    progressEmpty.width = totalPixels
+                }
+                emptyPixels -> {
+                    progressFilled.width = totalPixels
+                    progressEmpty.width = 0
+                }
+                else -> {
+                    progressFilled.width = filledPixels
+                    progressEmpty.x = x+filledPixels
+                    progressEmpty.width = totalPixels-filledPixels
+                }
+            }
+        } else {
+            when(0) {
+                filledPixels -> {
+                    progressFilled = SquareWidget(x, y, 0, 2, emptyColor)
+                    progressEmpty = SquareWidget(x, y, totalPixels, 2, emptyColor)
+                }
+                emptyPixels -> {
+                    progressFilled = SquareWidget(x, y, totalPixels, 2, filledColor)
+                    progressEmpty = SquareWidget(x, y, 0, 2, filledColor)
+                }
+                else -> {
+                    progressFilled = SquareWidget(x, y, filledPixels, 2, filledColor)
+                    progressEmpty = SquareWidget(x+filledPixels, y, totalPixels-filledPixels, 2, emptyColor)
+                }
+            }
+        }
+
+        addDrawableChild(progressFilled)
+        addDrawableChild(progressEmpty)
+    }
+
+    private fun initTextWidgets(start: Pair<Int, Int>) {
         val renderer = MinecraftClient.getInstance().textRenderer
 
         val title = Text.literal(IndicateManager.currentState.item.name)
@@ -61,11 +138,22 @@ class SpotifyControllerScreen : Screen(Text.literal("Spotify Controller Screen")
         val titleSize = renderer.getWidth(title)
         val artistSize = renderer.getWidth(artist)
 
-        titleWidget = TextWidget((width/2) - (titleSize/2), height/2, titleSize, 10, Text.literal(IndicateManager.currentState.item.name), renderer)
-        artistWidget = TextWidget((width/2) - (artistSize/2), height/2 + 13, artistSize, 10, Text.literal(IndicateManager.currentState.item.artists.joinToString(", ") { it.name } ), renderer)
+        titleWidget = TextWidget(start.first+9+(if (SpotifyConfig.instance.showAlbumArt) 32+10 else 0), start.second+6, titleSize, 10, Text.literal(IndicateManager.currentState.item.name), renderer)
+        artistWidget = TextWidget(start.first+9+(if (SpotifyConfig.instance.showAlbumArt) 32+10 else 0), start.second+19, artistSize, 10, Text.literal(IndicateManager.currentState.item.artists.joinToString(", ") { it.name } ), renderer)
 
         addDrawableChild(titleWidget)
         addDrawableChild(artistWidget)
+    }
+
+    private fun initSpotifyLogoWidget(start: Pair<Int, Int>) {
+        val x = start.first + size.first - 9 - 64
+        val y = start.second + 6
+
+        spotifyLogoWidget = IconWidget.create(64, 16, SPOTIFY_LOGO, 64, 16)
+        spotifyLogoWidget.x = x
+        spotifyLogoWidget.y = y
+
+        addDrawableChild(spotifyLogoWidget)
     }
 
     private fun initButtonWidgets() {
@@ -77,10 +165,10 @@ class SpotifyControllerScreen : Screen(Text.literal("Spotify Controller Screen")
             .build()
 
         pauseResumeButton = ButtonWidget.builder(
-            Text.literal(if (SpotifyHudOverlay.instance.isPlaying) "⏸" else "⏵"),
+            Text.literal(if (IndicateManager.isPlaying) "⏸" else "⏵"),
             this::pauseResumeButtonHandle)
             .dimensions(width/2 - 50, height/2 + 26, 100, 20)
-            .tooltip(Tooltip.of(Text.literal(if (SpotifyHudOverlay.instance.isPlaying) "Pause" else "Resume")))
+            .tooltip(Tooltip.of(Text.literal(if (IndicateManager.isPlaying) "Pause" else "Resume")))
             .build()
 
         nextButton = ButtonWidget.builder(
@@ -101,8 +189,8 @@ class SpotifyControllerScreen : Screen(Text.literal("Spotify Controller Screen")
 
     private fun pauseResumeButtonHandle(buttonWidget: ButtonWidget) {
         SpotifyController.togglePause()
-        pauseResumeButton.message = Text.literal(if (SpotifyHudOverlay.instance.isPlaying) "⏸" else "⏵")
-        pauseResumeButton.tooltip = Tooltip.of(Text.literal(if (SpotifyHudOverlay.instance.isPlaying) "Pause" else "Resume"))
+        pauseResumeButton.message = Text.literal(if (IndicateManager.isPlaying) "⏸" else "⏵")
+        pauseResumeButton.tooltip = Tooltip.of(Text.literal(if (IndicateManager.isPlaying) "Pause" else "Resume"))
     }
 
     private fun nextButtonHandle(buttonWidget: ButtonWidget) {

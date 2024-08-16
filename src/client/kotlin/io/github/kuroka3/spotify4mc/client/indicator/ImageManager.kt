@@ -34,7 +34,7 @@ object ImageManager {
 
                 if (prevAlbumArt != null) MinecraftClient.getInstance().textureManager.destroyTexture(prevAlbumArt)
 
-                SpotifyControllerScreen.instance.refreshTrack()
+                SpotifyControllerScreen.instance.refresh()
                 callback()
                 return@Thread
             } catch (e: Exception) {
@@ -50,6 +50,6 @@ object ImageManager {
         dominantColor = 0x00191414
         lastId = ""
 
-        SpotifyControllerScreen.instance.refreshTrack()
+        SpotifyControllerScreen.instance.refresh()
     }
 }

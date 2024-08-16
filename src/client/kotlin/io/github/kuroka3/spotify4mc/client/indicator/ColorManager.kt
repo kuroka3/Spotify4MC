@@ -37,14 +37,14 @@ object ColorManager {
         return (alpha shl 24) or (blue shl 16) or (green shl 8) or red
     }
 
-    fun addAlphaToHexColor(hexColor: Int, alpha: Int): Int {
+    fun Int.addAlphaToHexColor(alpha: Int): Int {
         // 알파값을 0-255 범위로 제한
         val clampedAlpha = alpha.coerceIn(0, 255)
 
         // 기존 색상에서 RGB를 추출
-        val red = (hexColor shr 16) and 0xFF
-        val green = (hexColor shr 8) and 0xFF
-        val blue = hexColor and 0xFF
+        val red = (this shr 16) and 0xFF
+        val green = (this shr 8) and 0xFF
+        val blue = this and 0xFF
 
         // 새로운 ARGB 형식으로 색상 생성
         return (clampedAlpha shl 24) or (red shl 16) or (green shl 8) or blue
@@ -64,7 +64,6 @@ object ColorManager {
     }
 
     private fun getRGBArr(rgb: Int): IntArray {
-        val alpha: Int = (rgb shr 24) and 0xff
         val red: Int = (rgb shr 16) and 0xff
         val green: Int = (rgb shr 8) and 0xff
         val blue: Int = (rgb) and 0xff

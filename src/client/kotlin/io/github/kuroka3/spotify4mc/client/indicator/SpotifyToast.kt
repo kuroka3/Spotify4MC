@@ -1,6 +1,7 @@
 package io.github.kuroka3.spotify4mc.client.indicator
 
 import io.github.kuroka3.spotify4mc.client.api.classes.structures.SpotifyTrack
+import io.github.kuroka3.spotify4mc.client.indicator.ColorManager.addAlphaToHexColor
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.font.TextRenderer
 import net.minecraft.client.gui.DrawContext
@@ -39,9 +40,9 @@ class SpotifyToast(val track: SpotifyTrack, val displayTime: Long = 5000L) : Toa
             context.drawText(renderer, NOW_PLAYING, 30, 11, 0x00ffff55, false)
         } else if (startTime < 1756L) {
             val elapsed = (startTime - 1500L).toInt()
-            context.drawText(renderer, NOW_PLAYING, 30, 11, ColorManager.addAlphaToHexColor(0x00ffff55, 255-elapsed), false)
-            context.drawText(renderer, title, 30, 7, ColorManager.addAlphaToHexColor(0x00ffffff, elapsed), false)
-            context.drawText(renderer, desc, 30, 16, ColorManager.addAlphaToHexColor(0x00ffffff, elapsed), false)
+            context.drawText(renderer, NOW_PLAYING, 30, 11, (0x00ffff55).addAlphaToHexColor(255-elapsed), false)
+            context.drawText(renderer, title, 30, 7, (0x00ffffff).addAlphaToHexColor(elapsed), false)
+            context.drawText(renderer, desc, 30, 16, (0x00ffffff).addAlphaToHexColor(elapsed), false)
         } else {
             context.drawText(renderer, title, 30, 7, 0x00ffffff, false)
             context.drawText(renderer, desc, 30, 16, 0x00ffffff, false)

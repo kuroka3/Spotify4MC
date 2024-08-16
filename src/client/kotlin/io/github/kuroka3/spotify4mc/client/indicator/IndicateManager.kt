@@ -10,6 +10,8 @@ import java.util.*
 
 object IndicateManager {
     lateinit var currentState: SpotifyTrackState
+    var currentMs: Int = 0
+    var isPlaying: Boolean = false
 
     private lateinit var timer: Timer
 

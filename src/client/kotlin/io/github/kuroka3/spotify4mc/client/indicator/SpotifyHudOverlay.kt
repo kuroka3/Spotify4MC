@@ -1,13 +1,14 @@
 package io.github.kuroka3.spotify4mc.client.indicator
 
 import io.github.kuroka3.spotify4mc.client.api.classes.structures.SpotifyTrack
+import io.github.kuroka3.spotify4mc.client.indicator.ColorManager.addAlphaToHexColor
+import io.github.kuroka3.spotify4mc.client.screens.SpotifyControllerScreen
 import io.github.kuroka3.spotify4mc.client.utils.SpotifyConfig
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.font.TextRenderer
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.render.RenderTickCounter
-import net.minecraft.text.OrderedText
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import java.net.URI
@@ -26,22 +27,20 @@ class SpotifyHudOverlay : HudRenderCallback {
             val img = track.album.images[0]
             instance.track = track
             if (SpotifyConfig.instance.showAlbumArt) ImageManager.loadImage(URI(img.url).toURL(), track.id)
-            instance.currentMs = state.progressMs
-            instance.isPlaying = state.isPlaying
+            IndicateManager.currentMs = state.progressMs
+            IndicateManager.isPlaying = state.isPlaying
         }
     }
 
     private var track: SpotifyTrack? = null
-    private var currentMs: Int = 0
-    var isPlaying: Boolean = false
 
     private var lastUpdate: Long = System.currentTimeMillis()
 
     override fun onHudRender(drawContext: DrawContext, tickCounter: RenderTickCounter) {
         if ((SpotifyConfig.instance.showAlbumArt && ImageManager.albumArt == null) || track == null) { lastUpdate = System.currentTimeMillis(); return }
 
-        if (isPlaying) currentMs += (System.currentTimeMillis() - lastUpdate).toInt()
-        if (currentMs >= track!!.durationMs) currentMs = track!!.durationMs
+        if (IndicateManager.isPlaying) IndicateManager.currentMs += (System.currentTimeMillis() - lastUpdate).toInt()
+        if (IndicateManager.currentMs >= track!!.durationMs) IndicateManager.currentMs = track!!.durationMs
         lastUpdate = System.currentTimeMillis()
 
         val client = MinecraftClient.getInstance()
@@ -60,17 +59,19 @@ class SpotifyHudOverlay : HudRenderCallback {
         val trackName = Text.literal(track!!.name)
         val trackArtist = Text.literal(track!!.artists.joinToString(", ") { it.name } )
 
-        val titleSize = if (SpotifyConfig.instance.showTrackInfo) calculateTitle(client.textRenderer, trackName, trackArtist, width-(9+albumArtSize.first+10+5)).first else -10
+        val titleSize = if (SpotifyConfig.instance.showTrackInfo) TextManager.calculateTitle(client.textRenderer, trackName, trackArtist, width-(9+albumArtSize.first+10+5)).first else -10
 
         drawBackground(drawContext, hudSquare)
         drawAlbumArt(drawContext, hudSquare, albumArtSize, Margin(9, 6, 0, 0))
         drawTitle(drawContext, client.textRenderer, hudSquare, Margin(9+albumArtSize.first+10, 6, 5, 0), trackName, trackArtist)
-        drawProgressBar(drawContext, hudSquare, Margin(9, 0, 9, 8), currentMs.toFloat()/track!!.durationMs.toFloat())
+        drawProgressBar(drawContext, hudSquare, Margin(9, 0, 9, 8), IndicateManager.currentMs.toFloat()/track!!.durationMs.toFloat())
         drawSpotifyLogo(drawContext, hudSquare, Margin(9+albumArtSize.first+10+titleSize+5, 6, 9, 0))
+
+        SpotifyControllerScreen.instance.refreshProgressOnly()
     }
 
     private fun drawBackground(context: DrawContext, hudSquare: HudSquare) {
-        context.fill(hudSquare.x1, hudSquare.y1, hudSquare.x2, hudSquare.y2, ColorManager.addAlphaToHexColor(ImageManager.dominantColor, (SpotifyConfig.instance.backgroundOpacity*255).roundToInt()))
+        context.fill(hudSquare.x1, hudSquare.y1, hudSquare.x2, hudSquare.y2, ImageManager.dominantColor.addAlphaToHexColor((SpotifyConfig.instance.backgroundOpacity*255).roundToInt()))
     }
 
     private fun drawAlbumArt(context: DrawContext, hudSquare: HudSquare, albumArtSize: Pair<Int, Int>, margin: Margin) {
@@ -109,21 +110,10 @@ class SpotifyHudOverlay : HudRenderCallback {
         if (!SpotifyConfig.instance.showTrackInfo) return
 
         val width = hudSquare.x2 - hudSquare.x1
-        val title = calculateTitle(renderer, name, artist, width-margin.left-margin.right)
+        val title = TextManager.calculateTitle(renderer, name, artist, width-margin.left-margin.right)
 
         context.drawText(renderer, title.second.first, hudSquare.x1+margin.left, hudSquare.y1+margin.top, (0xffffffff).toInt(), true)
         context.drawText(renderer, title.second.second, hudSquare.x1+margin.left, hudSquare.y1+margin.top+13, (0xffffffff).toInt(), true)
-    }
-
-    private fun calculateTitle(renderer: TextRenderer, name: Text, artist: Text, sizeLimit: Int): Pair<Int, Pair<OrderedText, OrderedText>> {
-        val nameWrapped = renderer.wrapLines(name, sizeLimit)
-        val artistWrapped = renderer.wrapLines(artist, sizeLimit)
-
-        val nameSizeWrapped = renderer.getWidth(nameWrapped[0])
-        val artistSizeWrapped = renderer.getWidth(artistWrapped[0])
-        val titleSize = if(nameSizeWrapped > artistSizeWrapped) nameSizeWrapped else artistSizeWrapped
-
-        return Pair(titleSize, Pair(nameWrapped[0], artistWrapped[0]))
     }
 
     private data class HudSquare(val x1: Int, val y1: Int, val x2: Int, val y2: Int)
